@@ -12,6 +12,73 @@
     </x-alert>
 @endif
 <h1 class="text-light text-center"><i class="fa fa-dashboard me-3 p-3 " aria-hidden="true"></i>Dashboard Admin</h1>
+
+<div class="container-fluid mt-4">
+    <div class="card bg-dark border-secondary shadow-lg">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0 text-center">
+                <i class="fas fa-plus-circle me-2"></i>Bulk Link Import (JSON Format)
+            </h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ route('bulkadmin') }}" id="bulkForm" enctype="multipart/form-data">
+                @csrf
+                
+                <div class="mb-3">
+                    <label class="form-label text-light" for="json_data">JSON Data:</label>
+                    <textarea class="form-control bg-dark text-light border-secondary" 
+                              name="json_data" 
+                              id="json_data" 
+                              rows="15" 
+                              placeholder='[{"title":"Example","link":"https://example.onion","category":"marketplace"},...]'
+                              required></textarea>
+                    <div class="form-text text-muted">Enter valid JSON array of link objects</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-light" for="json_file">Or Upload JSON File:</label>
+                    <input class="form-control bg-dark text-light border-secondary" 
+                           type="file" 
+                           name="json_file" 
+                           id="json_file"
+                           accept=".json,application/json">
+                    <div class="form-text text-muted">Max 2MB .json file</div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="overwrite" id="overwrite">
+                        <label class="form-check-label text-light" for="overwrite">
+                            Overwrite existing links
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Process Bulk Import
+                    </button>
+                </div>
+
+                <div class="mt-3">
+                    <div class="alert alert-info">
+                        <strong>JSON Format Example:</strong>
+                        <pre class="mt-2 mb-0">[
+    {
+        "title": "Example Market",
+        "link": "https://examplemarket.onion",
+        "category": "marketplace"
+    },
+    {
+        "title": "Chat Room",
+        "link": "https://chatroom.onion",
+        "category": "chat room"
+    }
+]</pre>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <div class="container-fluid mt-4">
     <div class="card bg-dark border-secondary shadow-lg">
         <div class="card-header bg-secondary text-white">

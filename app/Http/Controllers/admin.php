@@ -9,6 +9,69 @@ use App\Models\Session;
 
 class admin extends Controller
 {
+    public function addbulk(Request $request) {
+        $request->validate([
+           'json_data' => 'nullable|json',
+           'json_file' => 'nullable|file|mimes:json|max:2048'
+        ]);
+  
+        // Get JSON data from either textarea or file
+        if ($request->hasFile('json_file')) {
+           $jsonData = json_decode(file_get_contents($request->file('json_file')->getRealPath()), true);
+        } else {
+           $jsonData = json_decode($request->json_data, true);
+        }
+  
+        if (!is_array($jsonData)) {
+           return back()->with(['status'=>'error', 'message'=>'Invalid JSON format. Expected array of link objects']);
+        }
+  
+        $validatedLinks = [];
+        $overwrite = $request->has('overwrite');
+        
+        foreach ($jsonData as $link) {
+           $rules = [
+              'link' => 'required|url|max:2048',
+              'title' => 'nullable|string|max:255',
+              'category' => 'required|in:marketplace,chat room,forums,service,search,directory link,youtube,uploader,news,hosting,other'
+           ];
+  
+           if (!$overwrite) {
+              $rules['link'] .= '|unique:links,link';
+           }
+  
+           $validator = validator($link, $rules);
+  
+           if ($validator->fails()) {
+              return back()->with(['status'=>'error', 'message'=>'Validation failed: '.$validator->errors()->first()]);
+           }
+  
+           if ($overwrite) {
+              Link::updateOrCreate(
+                 ['link' => $link['link']],
+                 [
+                    'title' => $link['title'] ?? null,
+                    'catagory' => $link['category'],
+                    'postby' => $request->user()->id
+                 ]
+              );
+           } else {
+              $validatedLinks[] = [
+                 'link' => $link['link'],
+                 'title' => $link['title'] ?? null,
+                 'catagory' => $link['category'],
+                 'postby' => $request->user()->id
+              ];
+           }
+        }
+  
+        if (!$overwrite && count($validatedLinks) > 0) {
+           Link::insert($validatedLinks);
+        }
+  
+        $count = $overwrite ? count($jsonData) : count($validatedLinks);
+        return back()->with(['status'=>'success', 'message'=>'Successfully processed '.$count.' links!']);
+     }
     public function index()
     {
         // Get all links with pagination
@@ -38,7 +101,7 @@ class admin extends Controller
         ]);
         Link::create([
             'title'=>$validlink['title'],
-            'category' => $validlink['category'],
+            'catagory' => $validlink['category'],
 
             'link'=>$validlink['link'],
             'postby'=>auth()->id()

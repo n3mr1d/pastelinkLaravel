@@ -17,7 +17,16 @@
                 </div>
             </div>
             <div class="mt-2">
-                <p class="small text-muted mb-0">Share your links with the Hidden Line. Register to start sharing. Found a bug or having issues? Contact us at <a href="mailto:idrift@dnmx.su" class="text-info">idrift@dnmx.su</a>. The share link is really safe and anonymous - don't be scared.</p>
+                <p class="small text-light mb-0">Share your links with the Hidden Line. Register to start sharing. Found a bug or having issues? Contact us at <a href="mailto:idrift@dnmx.su" class="text-white">idrift@dnmx.su</a>. The share link is really safe and anonymous - don't be scared.</p>
+                <div class="alert alert-light small mb-0">
+                    <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                    <strong style="color:red;">Important Notice:</strong> Broken links will be automatically purged from our database during scheduled maintenance. The next cleanup is scheduled daily at 
+                    @php
+                        $nextCleanup = now()->addDay()->setTime(1, 0, 0);
+                        $formattedDate = $nextCleanup->format('l, F j, Y g:i A');
+                    @endphp
+                    <span class="text-light">{{ $formattedDate }}</span> (UTC).
+                </div>
             </div>
         </div>
         @if(session('message') || $errors->any())

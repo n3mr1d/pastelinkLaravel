@@ -29,8 +29,11 @@ return new class extends Migration
                 'hosting',
                 'other'
             ])->default('other');
+            $table->boolean('is_online')->default(false); 
+            $table->timestamp('last_checked_at')->nullable(); 
             $table->timestamps();
         });
+        
     }
 
     /**

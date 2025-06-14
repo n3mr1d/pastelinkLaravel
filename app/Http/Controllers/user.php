@@ -8,24 +8,68 @@ use App\Models\Link;
 class User extends Controller
 {
    // send bulk with json format 
-   public function addbulk(Request $request){
-      $data = $request->validate([
-         'links' => 'required|array',
-         'links.*.link' => 'required|url|max:2048|unique:links,link',
-         'links.*.title' => 'nullable|string|max:255',
-         'links.*.catagory' => 'required|in:marketplace,chat room,forums,service,search,directory link,youtube,uploader,news,hosting,other',
-     ]);
- 
-     foreach ($data['links'] as $linkData) {
-         Link::create([
-             'link' => $linkData['link'],
-             'title' => $linkData['title'] ?? null,
-             'catagory' => $linkData['catagory'],
-             'postby' => $request->user()->id
-         ]);
-     }
-     return back()->with(['status'=>'success', 'message'=>'success add bulk link !!']);
- 
+   public function addbulk(Request $request) {
+      $request->validate([
+         'json_data' => 'nullable|json',
+         'json_file' => 'nullable|file|mimes:json|max:2048'
+      ]);
+
+      // Get JSON data from either textarea or file
+      if ($request->hasFile('json_file')) {
+         $jsonData = json_decode(file_get_contents($request->file('json_file')->getRealPath()), true);
+      } else {
+         $jsonData = json_decode($request->json_data, true);
+      }
+
+      if (!is_array($jsonData)) {
+         return back()->with(['status'=>'error', 'message'=>'Invalid JSON format. Expected array of link objects']);
+      }
+
+      $validatedLinks = [];
+      $overwrite = $request->has('overwrite');
+      
+      foreach ($jsonData as $link) {
+         $rules = [
+            'link' => 'required|url|max:2048',
+            'title' => 'nullable|string|max:255',
+            'category' => 'required|in:marketplace,chat room,forums,service,search,directory link,youtube,uploader,news,hosting,other'
+         ];
+
+         if (!$overwrite) {
+            $rules['link'] .= '|unique:links,link';
+         }
+
+         $validator = validator($link, $rules);
+
+         if ($validator->fails()) {
+            return back()->with(['status'=>'error', 'message'=>'Validation failed: '.$validator->errors()->first()]);
+         }
+
+         if ($overwrite) {
+            Link::updateOrCreate(
+               ['link' => $link['link']],
+               [
+                  'title' => $link['title'] ?? null,
+                  'catagory' => $link['category'],
+                  'postby' => $request->user()->id
+               ]
+            );
+         } else {
+            $validatedLinks[] = [
+               'link' => $link['link'],
+               'title' => $link['title'] ?? null,
+               'catagory' => $link['category'],
+               'postby' => $request->user()->id
+            ];
+         }
+      }
+
+      if (!$overwrite && count($validatedLinks) > 0) {
+         Link::insert($validatedLinks);
+      }
+
+      $count = $overwrite ? count($jsonData) : count($validatedLinks);
+      return back()->with(['status'=>'success', 'message'=>'Successfully processed '.$count.' links!']);
    }
    public function index() {
       $userId = auth()->id();
@@ -52,7 +96,7 @@ class User extends Controller
 
       Link::create([
          'title' => $validated['title'],
-         'category' => $validated['category'],
+         'catagory' => $validated['category'],
          'link' => $validated['link'],
          'postby' => auth()->id(),
       ]);

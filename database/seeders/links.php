@@ -12,7 +12,6 @@ class links extends Seeder
      */
     public function run(): void
     {
-        Link::factory(100)->create([
-            'postby'=>'1']);
+       
     }
 }
