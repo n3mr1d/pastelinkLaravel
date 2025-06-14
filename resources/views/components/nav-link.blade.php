@@ -1,0 +1,1 @@
+<a href="{{ $href }}" class="nav-link px-3 my-2{{ $active ? ' active fw-bold' : ' text-white' }}">{{ $slot }}</a>
