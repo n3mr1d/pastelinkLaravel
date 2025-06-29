@@ -7,7 +7,9 @@ PasteLink is a platform that helps users manage and share links easily, whether 
 ---
 
 ## Demo Link
-Demo :  [Hidden Line](https://hidden.prtcl.icu.com).
+
+Demo :  [Hidden Line](https://hidden.prtcl.icu).
+
 ---
 
 # 📌 Project Overview
